@@ -1,18 +1,49 @@
-/* tslint:disable:no-unused-variable */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
 import { ServiceConsumerComponent } from './service-consumer.component';
 import { HelloService } from '../hello.service';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { Router, ActivatedRoute } from '@angular/router';
+import { Injectable } from '@angular/core';
 
 const mockedResponse = 'hello mocked';
 
 class MockHelloService {
-  get(): Observable<any> {
+  static get(): Observable<any> {
     return Observable.of(mockedResponse);
   }
 }
+
+class RouterStub {
+  static navigateByUrl(url: string) {
+    return url;
+  }
+}
+
+@Injectable()
+export class ActivatedRouteStub {
+  // ActivatedRoute.params is Observable
+  private subject = new BehaviorSubject(this.testParams);
+  params = this.subject.asObservable();
+
+  // Test parameters
+  private _testParams: {};
+  get testParams() {
+    return this._testParams;
+  }
+
+  set testParams(params: {}) {
+    this._testParams = params;
+    this.subject.next(params);
+  }
+
+  // ActivatedRoute.snapshot.params
+  get snapshot() {
+    return {params: this.testParams};
+  }
+}
+
 
 describe('ServiceConsumerComponent', () => {
   let component: ServiceConsumerComponent;
@@ -27,7 +58,7 @@ describe('ServiceConsumerComponent', () => {
 
     /** Add page elements after data is retrieved */
     addPageElements() {
-      // we have search results so elements are now in the DOM
+      // we have data so elements are now in the DOM
       this.mainParagraph = fixture.debugElement.query(By.css('p')).nativeElement;
     }
   }
@@ -38,9 +69,13 @@ describe('ServiceConsumerComponent', () => {
       declarations: [ServiceConsumerComponent]
     }).overrideComponent(ServiceConsumerComponent, {
       set: {
-        providers: [{provide: HelloService, useClass: MockHelloService}]
+        providers: [
+          {provide: ActivatedRoute, useClass: ActivatedRouteStub},
+          {provide: HelloService, useClass: MockHelloService},
+          {provide: Router, useClass: RouterStub}
+        ]
       }
-    })
+    });
     createComponent();
   }));
 
