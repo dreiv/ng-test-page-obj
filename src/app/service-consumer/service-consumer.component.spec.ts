@@ -1,7 +1,6 @@
 /* tslint:disable:no-unused-variable */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { DebugElement } from '@angular/core';
 
 import { ServiceConsumerComponent } from './service-consumer.component';
 import { HelloService } from '../hello.service';
@@ -53,7 +52,7 @@ describe('ServiceConsumerComponent', () => {
 
     // 1st change detection triggers ngOnInit data retrieval.
     fixture.detectChanges();
-    return fixture.whenStable().then(() => {
+    fixture.whenStable().then(() => {
       // 2nd change detection displays the async-fetched data
       fixture.detectChanges();
       page.addPageElements();
